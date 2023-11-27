@@ -5,6 +5,7 @@ import fr.iut.jeudego.gameComponent.Board;
 import java.util.Scanner;
 public class Game {
     private static boolean running;
+    public final String alphabet = "ABCDEFGHJKLMNOPQRSTUVWXYZ";
     private static Scanner sc = new Scanner(System.in);
     private Board board;
     public Game() {
@@ -41,7 +42,6 @@ public class Game {
     }
 
     private void boardsize(int size) {
-        System.out.println("oui");
         if (size>1 && size<19) {
             board = new Board(size);
         } else System.out.println("Illegal Size");;
@@ -49,19 +49,19 @@ public class Game {
 
     private void showboard() {
         StringBuilder map = new StringBuilder();
-        char c = 65;
         map.append("O - white stones").append(System.lineSeparator());
         map.append("X - black stones").append(System.lineSeparator());
-        map.append(System.lineSeparator()).append("   ");
+        if (board.getSize() > 9) map.append(System.lineSeparator()).append("   ");
+        else map.append(System.lineSeparator()).append("  ");
         for (int i = 0; i < board.getSize(); i++) {
-            map.append((char) (c + i)).append(" ");
+            map.append(alphabet.charAt(i)).append(" ");
         }
         map.append(System.lineSeparator());
-        for (int i = 0; i < board.getSize(); i++) {
-            if (i > 8) map.append(i + 1).append(" ");
-            else map.append(i + 1).append("  ");
+        for (int i = board.getSize(); i > 0; i--) {
+            if (i > 9 || board.getSize() < 10) map.append(i).append(" ");
+            else map.append(i).append("  ");
             for (int j = 0; j < board.getSize(); j++) {
-                switch (board.getPoint(i,j)) {
+                switch (board.getPoint(i-1,j)) {
                     case Board.EMPTY:
                         map.append(". ");
                         break;
@@ -75,11 +75,12 @@ public class Game {
                         break;
                 }
             }
-            map.append(i + 1).append(System.lineSeparator());
+            map.append(i).append(System.lineSeparator());
         }
-        map.append("   ");
+        if (board.getSize() > 9) map.append("   ");
+        else map.append("  ");
         for (int i = 0; i < board.getSize(); i++) {
-            map.append((char) (c + i)).append(" ");
+            map.append(alphabet.charAt(i)).append(" ");
         }
         System.out.println(map);
     }
