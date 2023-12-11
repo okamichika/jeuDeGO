@@ -9,10 +9,14 @@ public class Game {
     public final String alphabet = "ABCDEFGHJKLMNOPQRSTUVWXYZ";
     private static Scanner sc = new Scanner(System.in);
     private Board board;
+    private int[] score;
 
     public Game() {
         board = new Board(19);
         running = true;
+        score = new int[2];
+        initScore();
+
     }
 
     public void run() {
@@ -34,12 +38,19 @@ public class Game {
                     break;
                 case "showboard":
                     showboard();
+                case "clear_board":
+                    clear_board();
                 default:
                     break;
             }
         }
     }
 
+
+    private void initScore() {
+        score[Board.WHITE] = 0;
+        score[Board.BLACK] = 0;
+    }
     private static void quit() {
         running = false;
     }
@@ -49,6 +60,12 @@ public class Game {
             board = new Board(size);
         } else System.out.println("Illegal Size");
 
+    }
+
+    private void clear_board() {
+        board = new Board(board.getSize());
+        score[Board.WHITE] = 0;
+        score[Board.BLACK] = 0;
     }
 
     private void showboard() {
@@ -91,10 +108,6 @@ public class Game {
             }
             map.append(System.lineSeparator());
         }
-
-
-
-
 
         if (board.getSize() > 9) map.append("   ");
         else map.append("  ");
