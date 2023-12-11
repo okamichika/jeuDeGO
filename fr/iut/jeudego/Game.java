@@ -98,13 +98,13 @@ public class Game {
             map.append(i);
             if (board.getSize() < 10) {
                 if (i == 2 || i == 1) {
-                    map.append("       ").append(i == 2 ? "WHITE (O) has captured" : "BLACK (X) has captured ");
+                    map.append("       ").append(i == 2 ? "WHITE (O) has captured"+ score[board.WHITE] +" stones" : "BLACK (X) has captured "+ score[board.BLACK] +" stones");
                 }
             } else if (i == board.getSize() - 8 || i == board.getSize() - 9) {
                 if (i > 9 || board.getSize() < 10)
-                    map.append("      ").append(i == board.getSize() - 8 ? "WHITE (O) has captured" : "BLACK (X) has captured ");
+                    map.append("      ").append(i == board.getSize() - 8 ? "WHITE (O) has captured"+ score[board.WHITE] +" stones" : "BLACK (X) has captured "+ score[board.BLACK] +" stones");
                 else
-                    map.append("       ").append(i == board.getSize() - 8 ? "WHITE (O) has captured" : "BLACK (X) has captured ");
+                    map.append("       ").append(i == board.getSize() - 8 ? "WHITE (O) has captured"+ score[board.WHITE] +" stones" : "BLACK (X) has captured "+ score[board.BLACK] +" stones");
             }
             map.append(System.lineSeparator());
         }
