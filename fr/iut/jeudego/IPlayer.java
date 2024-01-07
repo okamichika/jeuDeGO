@@ -23,7 +23,7 @@ public abstract class IPlayer {
         return true;
     }
 
-    private void addScore(int score) {
+    public void addScore(int score) {
         this.score += score;
     }
 

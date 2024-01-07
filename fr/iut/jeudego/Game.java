@@ -8,8 +8,7 @@ import fr.iut.jeudego.gameComponent.Coord;
 import fr.iut.jeudego.player.Human;
 import fr.iut.jeudego.player.Robot;
 
-import java.util.Objects;
-import java.util.Scanner;
+import java.util.*;
 
 public class Game {
     private boolean engineRunning;
@@ -84,7 +83,13 @@ public class Game {
                         output.setCharAt(0, '?');
                     } else {
                         try {
-                            this.board = GTP.Boardsize(Integer.parseInt(tabInput[tabIndex + 1]));
+                            int size = Integer.parseInt(tabInput[tabIndex + 1]);
+                            if (board.isValidSize(size)) {
+                                this.board = GTP.Boardsize(Integer.parseInt(tabInput[tabIndex + 1]));
+                            } else {
+                                output.append(" unacceptable size");
+                                output.setCharAt(0, '?');
+                            }
                         } catch (InvalidSizeException e) {
                             output.append(" unacceptable size");
                             output.setCharAt(0, '?');
@@ -108,8 +113,8 @@ public class Game {
                         } else {
                             try {
                                 Coord playCoord = board.getCoord(tabInput[tabIndex + 2].toUpperCase());
-                                this.board.play(playCoord, this.currentPlayer.getColor());
-                                verifyIfPawnKillable(playCoord);
+                                this.board.putIn(playCoord, this.currentPlayer.getColor());
+                                verifyIfPawnKillable();
                                 changePlayerTurn();
                             } catch (InvalidCoordException e) {
                                 output.setCharAt(0, '?');
@@ -168,19 +173,17 @@ public class Game {
         }
     }
 
-    private void verifyIfPawnKillable(Coord playCoord) {
-        if (playCoord.getX() > 0 && this.board.getPoint(playCoord.getX(), playCoord.getY()) != this.board.getPoint(playCoord.getX() - 1, playCoord.getY())) {
-            this.board.getLiberties(new Coord(playCoord.getX()-1, playCoord.getY()));
+    private void verifyIfPawnKillable() {
+        List<Coord> killable = new ArrayList<>();
+        for (int i = 0; i < board.getSize(); i++) {
+            for (int j = 0; j < board.getSize(); j++) {
+                if (board.getLiberties(new Coord(i, j)) == 0) {
+                    killable.add(new Coord(i, j));
+                }
+            }
         }
-        if (playCoord.getX() < this.board.getSize() - 2 && this.board.getPoint(playCoord.getX(), playCoord.getY()) != this.board.getPoint(playCoord.getX() + 1, playCoord.getY())) {
-            this.board.getLiberties(new Coord(playCoord.getX()+1, playCoord.getY()));
-        }
-        if (playCoord.getY() > 0 && this.board.getPoint(playCoord.getX(), playCoord.getY()) != this.board.getPoint(playCoord.getX(), playCoord.getY() - 1)) {
-            this.board.getLiberties(new Coord(playCoord.getX(), playCoord.getY()-1));
-        }
-        if (playCoord.getY() < this.board.getSize() - 2 && this.board.getPoint(playCoord.getX(), playCoord.getY()) != this.board.getPoint(playCoord.getX(), playCoord.getY()+1)) {
-            this.board.getLiberties(new Coord(playCoord.getX(), playCoord.getY()+1));
-        }
+        board.kill(killable);
+        currentPlayer.addScore(killable.size());
     }
 
     private boolean isValidPlayer (String s) {
@@ -204,7 +207,7 @@ public class Game {
             if (i > 9 || board.getSize() < 10) map.append(i).append(" ");
             else map.append(i).append("  ");
             for (int j = 0; j < board.getSize(); j++) {
-                switch (board.getPoint(i - 1, j)) {
+                switch (board.getPoint(new Coord(i - 1, j))) {
                     case Board.EMPTY_POSITION:
                         map.append(". ");
                         break;

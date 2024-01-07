@@ -3,9 +3,7 @@ package fr.iut.jeudego.gameComponent;
 import fr.iut.jeudego.exception.IllegalMoveException;
 import fr.iut.jeudego.exception.InvalidCoordException;
 
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 public class Board {
 
@@ -17,6 +15,7 @@ public class Board {
     public static final int WHITE = 1;
     private final int size;
     private final int[][] board;
+    private List<Coord> lastKilled;
 
     public Board() {
         this(MAX_SIZE);
@@ -25,6 +24,7 @@ public class Board {
     public Board(int size) {
         this.size = size;
         this.board = new int[this.size][this.size];
+        this.lastKilled = new ArrayList<>();
         createEmptyBoard();
     }
 
@@ -49,8 +49,8 @@ public class Board {
         return this.size;
     }
 
-    public int getPoint(int i, int j) {
-        return board[i][j];
+    public int getPoint(Coord c) {
+        return board[c.x][c.y];
     }
 
     public Coord getCoord (String s) throws InvalidCoordException {
@@ -69,29 +69,59 @@ public class Board {
         }
     }
 
-    public void play(Coord playCoord, String color) throws IllegalMoveException {
-        if (this.board[playCoord.getX()][playCoord.getY()] != EMPTY_POSITION) {
+    public void putIn(Coord c, String color) throws IllegalMoveException {
+        if (this.board[c.x][c.y] != EMPTY_POSITION) {
             throw new IllegalMoveException();
-        }
-        if (Objects.equals(color, "white")) {
-            this.board[playCoord.getX()][playCoord.getY()] = WHITE;
+        } else if (lastKilled.contains(c)) {
+            throw new IllegalMoveException();
         } else {
-            this.board[playCoord.getX()][playCoord.getY()] = BLACK;
+            if (Objects.equals(color, "white")) {
+                this.board[c.x][c.y] = WHITE;
+            } else {
+                this.board[c.x][c.y] = BLACK;
+            }
         }
+        lastKilled = new ArrayList<>();
     }
 
-    public void getLiberties(Coord coord) {
+    private void getGroup(Coord c, int value, List<Coord> seen, List<Coord> group) {
+        int x = c.x;
+        int y = c.y;
+        if (x < 0 || x >= size || y < 0 || y >= size || board[x][y] != value || seen.contains(c)) {
+            return;
+        }
+        seen.add(c);
+        group.add(c);
+
+        getGroup(new Coord(x, y + 1), value, seen, group);
+        getGroup(new Coord(x + 1, y), value, seen, group);
+        getGroup(new Coord(x, y - 1), value, seen, group);
+        getGroup(new Coord(x - 1, y), value, seen, group);
+    }
+
+    public int getLiberties(Coord c) {
+        List<Coord> seen = new ArrayList<>();
+        List<Coord> group = new ArrayList<>();
+        getGroup(c, getPoint(c), seen, group);
         int nbLiberties = 0;
-        if (coord.getX() > 0 && this.board[coord.getX() - 1][coord.getY()] == EMPTY_POSITION) {
-            nbLiberties += 1;
-        } else if (coord.getX() > 0 && this.board[coord.getX() - 1][coord.getY()] == this.board[coord.getX()][coord.getY()]) {
-            HashSet<Coord> seen = new HashSet<>();
-            seen.add(coord);
-            getLiberties(new Coord(coord.getX() - 1, coord.getY()), seen);
+        for (Coord member : group) {
+            if (member.x - 1 >= 0 && board[member.x - 1][member.y] == EMPTY_POSITION) nbLiberties += 1;
+            if (member.x + 1 < this.size && board[member.x + 1][member.y] == EMPTY_POSITION) nbLiberties += 1;
+            if (member.y - 1 >= 0 && board[member.x][member.y - 1] == EMPTY_POSITION) nbLiberties += 1;
+            if (member.y + 1 < this.size && board[member.x][member.y + 1] == EMPTY_POSITION) nbLiberties += 1;
+        }
+        return nbLiberties;
+    }
+
+    public void kill(List<Coord> killable) {
+        for (Coord c : killable) {
+            board[c.x][c.y] = EMPTY_POSITION;
+            lastKilled.add(c);
+            System.out.println(lastKilled.size());
         }
     }
 
-    public void getLiberties(Coord coord, Set<Coord> seen) {
-
+    public boolean isValidSize(int size) {
+        return size >= MIN_SIZE && size <= MAX_SIZE;
     }
 }
