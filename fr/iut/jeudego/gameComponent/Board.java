@@ -15,7 +15,7 @@ public class Board {
     public static final int WHITE = 1;
     private final int size;
     private final int[][] board;
-    private List<Coord> lastKilled;
+    private final List<Coord> lastKilled;
 
     public Board() {
         this(MAX_SIZE);
@@ -36,7 +36,7 @@ public class Board {
         }
     }
 
-    private boolean isFull () {
+    public boolean isFull () {
         for (int i = 0; i < this.size; i++) {
             for (int j = 0; j < this.size; j++) {
                 if (board[i][j] == EMPTY_POSITION) return false;
@@ -75,13 +75,13 @@ public class Board {
         } else if (lastKilled.contains(c)) {
             throw new IllegalMoveException();
         } else {
+            this.lastKilled.clear();
             if (Objects.equals(color, "white")) {
                 this.board[c.x][c.y] = WHITE;
             } else {
                 this.board[c.x][c.y] = BLACK;
             }
         }
-        lastKilled = new ArrayList<>();
     }
 
     private void getGroup(Coord c, int value, List<Coord> seen, List<Coord> group) {
@@ -115,9 +115,8 @@ public class Board {
 
     public void kill(List<Coord> killable) {
         for (Coord c : killable) {
-            board[c.x][c.y] = EMPTY_POSITION;
-            lastKilled.add(c);
-            System.out.println(lastKilled.size());
+            this.board[c.x][c.y] = EMPTY_POSITION;
+            this.lastKilled.add(c);
         }
     }
 

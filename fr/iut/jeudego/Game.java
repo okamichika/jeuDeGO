@@ -19,6 +19,7 @@ public class Game {
     private Board board;
     private IPlayer currentPlayer;
     private final GtpCommande GTP;
+    private String lastCommand;
 
     public Game() {
         this.engineRunning = true;
@@ -50,11 +51,13 @@ public class Game {
                 this.gameStarted = true;
             }
             if (this.gameStarted && !this.currentPlayer.isHuman()) {
-                //todo call the Robot play method to get his play and then display the board
+                System.out.println("= " + randomPlay());
+                showboard();
             } else {
                 String input;
                 input = this.sc.nextLine();
                 callGTPCommand(input.trim());
+                lastCommand = input;
             }
         }
     }
@@ -66,20 +69,20 @@ public class Game {
         if (tabInput.length == 1 && isNum(tabInput[tabIndex])) {
             return;
         }
-        output.append("=");
+        output.append("= ");
         if (isNum(tabInput[tabIndex])) {
             output.append(tabInput[tabIndex]);
             tabIndex++;
         }
         if (!GTP.isValidCommand(tabInput[tabIndex])) {
-            output.append(" unknown command");
+            output.append("unknown command");
             output.setCharAt(0, '?');
             System.out.println(output);
         } else {
             switch (tabInput[tabIndex]) {
                 case "boardsize":
                     if (tabInput.length - 1 == tabIndex || !isNum(tabInput[tabIndex + 1])) {
-                        output.append(" boardsize not an integer");
+                        output.append("boardsize not an integer");
                         output.setCharAt(0, '?');
                     } else {
                         try {
@@ -87,11 +90,11 @@ public class Game {
                             if (board.isValidSize(size)) {
                                 this.board = GTP.Boardsize(Integer.parseInt(tabInput[tabIndex + 1]));
                             } else {
-                                output.append(" unacceptable size");
+                                output.append("unacceptable size");
                                 output.setCharAt(0, '?');
                             }
                         } catch (InvalidSizeException e) {
-                            output.append(" unacceptable size");
+                            output.append("unacceptable size");
                             output.setCharAt(0, '?');
                         }
                     }
@@ -105,23 +108,21 @@ public class Game {
                     this.gameStarted = true;
                     if (tabInput.length - 1 <= tabIndex + 1 || !isValidPlayer(tabInput[tabIndex + 1])) {
                         output.setCharAt(0, '?');
-                        output.append(" invalid color or coordinate");
+                        output.append("invalid color or coordinate");
                     } else {
                         if (!Objects.equals(this.currentPlayer.getColor(), tabInput[tabIndex + 1])) {
                             output.setCharAt(0, '?');
-                            output.append(" its not the turn of this player");
+                            output.append("its not the turn of this player");
                         } else {
                             try {
                                 Coord playCoord = board.getCoord(tabInput[tabIndex + 2].toUpperCase());
-                                this.board.putIn(playCoord, this.currentPlayer.getColor());
-                                verifyIfPawnKillable();
-                                changePlayerTurn();
+                                play(playCoord);
                             } catch (InvalidCoordException e) {
                                 output.setCharAt(0, '?');
-                                output.append(" invalid color or coordinate");
+                                output.append("invalid color or coordinate");
                             } catch (IllegalMoveException e) {
                                 output.setCharAt(0, '?');
-                                output.append(" illegal move");
+                                output.append("illegal move");
                             }
                         }
                     }
@@ -138,7 +139,15 @@ public class Game {
                     System.out.println(output);
                     break;
                 case "genmove":
-                    // Code à exécuter pour "genmove"
+                    if (Objects.equals(tabInput[tabIndex + 1], currentPlayer.getColor())){
+                        output.append(randomPlay());
+                        gameStarted = true;
+                    }
+                    else {
+                        output.setCharAt(0, '?');
+                        output.append("invalid color");
+                    }
+                    System.out.println(output);
                     break;
                 case "showboard":
                     System.out.println(output);
@@ -147,10 +156,10 @@ public class Game {
                 case "player":
                     if (this.gameStarted) {
                         output.setCharAt(0, '?');
-                        output.append(" the game already started");
-                    } else if (tabInput.length - 1 <= tabIndex + 1 || !isValidPlayer(tabInput[tabIndex + 1]) || !isValidTypeOfPlayer(tabInput[tabIndex + 1])) {
+                        output.append("the game already started");
+                    } else if (tabInput.length - 1 <= tabIndex + 1 || !isValidPlayer(tabInput[tabIndex + 1]) || !isValidTypeOfPlayer(tabInput[tabIndex + 2])) {
                         output.setCharAt(0, '?');
-                        output.append(" invalid color or type");
+                        output.append("invalid color or type");
                     } else {
                         tabIndex++;
                         if (tabInput[tabIndex + 1].equalsIgnoreCase("robot")) {
@@ -158,26 +167,45 @@ public class Game {
                                 white = new Robot(white.getPawnRepresentation(), "white");
                             } else {
                                 black = new Robot(black.getPawnRepresentation(), "black");
+                                currentPlayer = black;
                             }
                         } else {
                             if (tabInput[tabIndex].equalsIgnoreCase("white")) {
                                 white = new Human(white.getPawnRepresentation(), "white");
                             } else {
                                 black = new Human(black.getPawnRepresentation(), "black");
+                                currentPlayer = black;
                             }
                         }
                     }
                     System.out.println(output);
                     break;
+                case "pass":
+                    if (Objects.equals(lastCommand, "pass")) {
+                        engineRunning = false;
+                    }
+                    lastCommand = tabInput[tabIndex];
+                    changePlayerTurn();
+                    break;
             }
         }
+    }
+
+    private void play(Coord c) throws IllegalMoveException {
+        this.board.putIn(c, this.currentPlayer.getColor());
+        if (board.isFull()) {
+            engineRunning = false;
+        }
+        verifyIfPawnKillable();
+        changePlayerTurn();
+
     }
 
     private void verifyIfPawnKillable() {
         List<Coord> killable = new ArrayList<>();
         for (int i = 0; i < board.getSize(); i++) {
             for (int j = 0; j < board.getSize(); j++) {
-                if (board.getLiberties(new Coord(i, j)) == 0) {
+                if (board.getPoint(new Coord(i, j)) != Board.EMPTY_POSITION && board.getLiberties(new Coord(i, j)) == 0) {
                     killable.add(new Coord(i, j));
                 }
             }
@@ -253,5 +281,23 @@ public class Game {
         } else {
             this.currentPlayer = this.black;
         }
+    }
+
+    private String randomPlay() {
+        Random random = new Random();
+        for (int i = 0; i < 20; i++) {
+            Coord play = new Coord(random.nextInt(board.getSize()), random.nextInt(board.getSize()));
+            try {
+                play(play);
+                return "" + Board.ALPHABET.charAt(play.y) + (play.x + 1);
+            } catch (IllegalMoveException e) {
+                continue;
+            }
+        }
+        if (Objects.equals(lastCommand, "pass")) {
+            engineRunning = false;
+        }
+        lastCommand = "pass";
+        return "";
     }
 }
