@@ -35,6 +35,4 @@ public class GtpCommande {
         }
         return new Board(size);
     }
-
-
 }
