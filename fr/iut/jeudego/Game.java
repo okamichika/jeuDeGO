@@ -139,7 +139,7 @@ public class Game {
                     System.out.println(output);
                     break;
                 case "genmove":
-                    if (Objects.equals(tabInput[tabIndex + 1], currentPlayer.getColor())){
+                    if (tabInput.length - 1 > tabIndex && Objects.equals(tabInput[tabIndex + 1], currentPlayer.getColor())){
                         output.append(randomPlay());
                         gameStarted = true;
                     }
