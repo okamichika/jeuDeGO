@@ -8,13 +8,14 @@ import java.util.Arrays;
 public class GtpCommande {
     private static final String[] commands = {
             "boardsize",
-            "list_commands",
-            "play",
             "clear_board",
-            "quit",
             "genmove",
-            "showboard",
-            "player"
+            "list_commands",
+            "pass",
+            "play",
+            "player",
+            "quit",
+            "showboard"
     };
 
 
@@ -37,4 +38,3 @@ public class GtpCommande {
 
 
 }
-//あの娘シークレット
