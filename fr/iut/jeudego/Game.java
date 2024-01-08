@@ -187,6 +187,16 @@ public class Game {
                     lastCommand = tabInput[tabIndex];
                     changePlayerTurn();
                     break;
+                case "liberties":
+                    try {
+                        Coord c = board.getCoord(tabInput[tabIndex + 1].toUpperCase());
+                        output.append(board.getLiberties(c)).append(" liberties for this pawn");
+                    } catch (Exception e) {
+                        output.setCharAt(0, '?');
+                        output.append("invalid coordinate");
+                    }
+                    System.out.println(output);
+                    break;
             }
         }
     }

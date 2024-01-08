@@ -10,6 +10,7 @@ public class GtpCommande {
             "boardsize",
             "clear_board",
             "genmove",
+            "liberties",
             "list_commands",
             "pass",
             "play",
